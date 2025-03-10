@@ -126,6 +126,7 @@ if (inputManager.KeyTapped(Keys.S, true, false, false))
 if (inputManager.KeyTapped(Keys.Z, false, true, false))
 {
     // Undo action
+    //this will NOT trigger if only Z is tapped
 }
 ```
 
