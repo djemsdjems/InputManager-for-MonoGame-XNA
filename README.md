@@ -10,6 +10,7 @@ A comprehensive, feature-rich input management system for MonoGame and XNA Frame
   - Key hold duration tracking
   - Key release detection
   - Combined tap and hold detection
+- **Key Binding System** - Map game actions to specific keys with easy configuration
 - **Modifier Key Support** - Convenient methods for detecting Shift, Ctrl, and Alt combinations
 - **Text Input** - Character mapping for keyboard input
 - **Mouse Functionality**
@@ -74,6 +75,37 @@ if (inputManager.KeyReleased(Keys.Escape))
 }
 ```
 
+### Key Binding System
+
+```csharp
+// Define your key bindings
+var KeyBindings = new Dictionary<string, Keys>()
+{
+    {"Jump", Keys.Space},
+    {"Attack", Keys.X},
+    {"Dodge", Keys.LeftShift},
+    {"Interact", Keys.E},
+    {"Pause", Keys.Escape}
+};
+
+// Use the bindings in your code
+if (inputManager.KeyTapped(KeyBindings["Jump"]))
+{
+    player.Jump();
+}
+
+if (inputManager.KeyHeld(KeyBindings["Attack"]))
+{
+    player.ChargingAttack();
+}
+
+// This makes it easy to implement key rebinding in your settings menu
+public void RebindKey(string action, Keys newKey)
+{
+    KeyBindings[action] = newKey;
+}
+```
+
 ### Multi-tap Detection
 
 ```csharp
@@ -87,6 +119,12 @@ if (inputManager.KeyMultiTapped(Keys.E, 2, 60))
 if (inputManager.KeyMultiTapped(Keys.Q, 3))
 {
     // Perform triple-tap action
+}
+
+// Works with key bindings too
+if (inputManager.KeyMultiTapped(KeyBindings["Dodge"], 2, 30))
+{
+    // Double-tap dodge for special move
 }
 ```
 
@@ -126,7 +164,6 @@ if (inputManager.KeyTapped(Keys.S, true, false, false))
 if (inputManager.KeyTapped(Keys.Z, false, true, false))
 {
     // Undo action
-    //this will NOT trigger if only Z is tapped
 }
 ```
 
@@ -169,4 +206,4 @@ This project is available under the MIT License. Feel free to use, modify, and d
 
 ## Acknowledgments
 
-Created by djemsdjems. Inspired by the need for a robust input system for MonoGame projects.
+Created by [Your Name/Username]. Inspired by the need for a robust input system for MonoGame projects.
