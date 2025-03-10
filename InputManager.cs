@@ -13,17 +13,16 @@ namespace Infirejer.Scripts {
         private Dictionary<Keys, int> keyHoldDurations = new Dictionary<Keys, int>();
 
         private class TapInfo {
-            public long LastTapFrame;    // When was the last tap registered
-            public int TapCount;        // How many taps have occurred in sequence
-            public bool WasReleased;    // Has the key been released since last tap
-            public bool JustTapped;     // Has tap been registered this frame (prevents double counting)
-            public int CustomInterval;  // Store custom interval for this key
+            public long LastTapFrame;
+            public int TapCount;
+            public bool WasReleased;  
+            public bool JustTapped; 
+            public int CustomInterval; 
         }
 
         private Dictionary<Keys, TapInfo> keyTapHistory = new Dictionary<Keys, TapInfo>();
         private long currentFrame = 0;
 
-        // Maximum number of frames between taps to count as consecutive
         private const int DEFAULT_MAX_INTERVAL = 20;
 
         private readonly Dictionary<Keys, char> KeyChars = new(){
@@ -35,28 +34,23 @@ namespace Infirejer.Scripts {
             {Keys.U, 'u'}, {Keys.V, 'v'}, {Keys.W, 'w'}, {Keys.X, 'x'}, {Keys.Y, 'y'},
             {Keys.Z, 'z'},
             
-            // Numbees
             {Keys.D0, '0'}, {Keys.D1, '1'}, {Keys.D2, '2'}, {Keys.D3, '3'}, {Keys.D4, '4'},
             {Keys.D5, '5'}, {Keys.D6, '6'}, {Keys.D7, '7'}, {Keys.D8, '8'}, {Keys.D9, '9'},
             {Keys.NumPad0, '0'}, {Keys.NumPad1, '1'}, {Keys.NumPad2, '2'}, {Keys.NumPad3, '3'},
             {Keys.NumPad4, '4'}, {Keys.NumPad5, '5'}, {Keys.NumPad6, '6'}, {Keys.NumPad7, '7'},
             {Keys.NumPad8, '8'}, {Keys.NumPad9, '9'},
             
-            // Special characters
             {Keys.Space, ' '}, {Keys.OemPeriod, '.'}, {Keys.OemComma, ','},
             {Keys.OemMinus, '-'}, {Keys.OemPlus, '+'}, {Keys.OemQuestion, '?'},
             {Keys.OemQuotes, '\''}, {Keys.OemSemicolon, ';' }, {Keys.OemPipe, '\\'},
             {Keys.OemBackslash, '\\'},
         };
 
-        // Add shifted characters dictioanary
         private readonly Dictionary<Keys, char> ShiftedKeyChars = new()
         {
-            // Shifted numbers
             {Keys.D1, '!'}, {Keys.D2, '@'}, {Keys.D3, '#'}, {Keys.D4, '$'}, {Keys.D5, '%'},
             {Keys.D6, '^'}, {Keys.D7, '&'}, {Keys.D8, '*'}, {Keys.D9, '('}, {Keys.D0, ')'},
             
-            // Shifted special characters
             {Keys.OemPeriod, '>'}, {Keys.OemComma, '<'}, {Keys.OemMinus, '_'},
             {Keys.OemPlus, '+'}, {Keys.OemQuestion, '?'}, {Keys.OemQuotes, '"'},
             {Keys.OemSemicolon, ':'},{Keys.OemPipe, '|'},{Keys.OemBackslash, '|'},
@@ -85,10 +79,8 @@ namespace Infirejer.Scripts {
             UpdateTapTracking();
         }
         private void UpdateKeyHoldDurations() {
-            // Get all currently pressed keys
             Keys[] pressedKeys = CKS.GetPressedKeys();
 
-            // Increment counters for currently pressed keys
             foreach (Keys key in pressedKeys) {
                 if (keyHoldDurations.ContainsKey(key)) {
                     keyHoldDurations[key]++;
@@ -98,7 +90,6 @@ namespace Infirejer.Scripts {
                 }
             }
 
-            // Reset counters for released keys
             List<Keys> keysToReset = new List<Keys>();
             foreach (Keys key in keyHoldDurations.Keys) {
                 if (!CKS.IsKeyDown(key)) {
@@ -111,14 +102,12 @@ namespace Infirejer.Scripts {
             }
         }
         private void UpdateTapTracking() {
-            // For every tap info, reset the JustTapped flag
             foreach (var key in keyTapHistory.Keys) {
                 keyTapHistory[key].JustTapped = false;
             }
 
             // Process all keys
             foreach (Keys key in CKS.GetPressedKeys()) {
-                // Initialize tap info if not existing
                 if (!keyTapHistory.ContainsKey(key)) {
                     keyTapHistory[key] = new TapInfo {
                         LastTapFrame = -DEFAULT_MAX_INTERVAL,
@@ -131,14 +120,12 @@ namespace Infirejer.Scripts {
 
                 TapInfo info = keyTapHistory[key];
 
-                // If key was just pressed and was previously released 
                 if (!PKS.IsKeyDown(key) && CKS.IsKeyDown(key) && info.WasReleased) {
-                    // Check if this tap is within the interval of the previous tap
                     if (currentFrame - info.LastTapFrame <= info.CustomInterval) {
-                        info.TapCount++; // Increment tap count for consecutive taps
+                        info.TapCount++;
                     }
                     else {
-                        info.TapCount = 1; // Reset tap count for new sequence
+                        info.TapCount = 1;
                     }
 
                     info.LastTapFrame = currentFrame;
@@ -147,14 +134,12 @@ namespace Infirejer.Scripts {
                 }
             }
 
-            // Track key releases
             foreach (Keys key in Enum.GetValues(typeof(Keys))) {
                 if (keyTapHistory.ContainsKey(key)) {
                     if (PKS.IsKeyDown(key) && !CKS.IsKeyDown(key)) {
                         keyTapHistory[key].WasReleased = true;
                     }
 
-                    // Reset tap count if too much time passes since last tap
                     TapInfo info = keyTapHistory[key];
                     if (info.TapCount > 0 &&
                         currentFrame - info.LastTapFrame > info.CustomInterval &&
@@ -324,9 +309,7 @@ namespace Infirejer.Scripts {
 
             TapInfo info = keyTapHistory[key];
 
-            // Check if we have the right number of taps, just tapped, and within the custom interval
             if (info.TapCount == tapCount && info.JustTapped) {
-                // Reset tap count so we can detect another sequence
                 info.TapCount = 0;
                 return true;
             }
@@ -335,7 +318,6 @@ namespace Infirejer.Scripts {
         }
 
 
-        // Check if a key has been tapped exactly N times regardless of when
         public bool HasKeyTapCount(Keys key, int tapCount) {
             if (keyTapHistory.TryGetValue(key, out TapInfo info)) {
                 return info.TapCount == tapCount;
